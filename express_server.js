@@ -22,3 +22,7 @@ app.get("/urls/:shortURL", (req, res) => {
   let templateVars = { shortURL: req.params.shortURL, longURL: req.params.longURL };
   res.render('urls_show', templateVars);
 });
+
+app.get("/urls/new", (req, res) => {
+  res.render('urls_new');
+});
