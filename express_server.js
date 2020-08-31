@@ -18,3 +18,4 @@ app.get("/urls", (req, res) => {
   res.render('urls_index', templateVars);
 });
 
+// <h1><%= greeting %></h1>
