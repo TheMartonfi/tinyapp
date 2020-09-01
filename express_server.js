@@ -1,3 +1,5 @@
+//Give short urls anchor tag on index
+
 const express = require("express");
 const bodyParser = require("body-parser");
 
@@ -39,6 +41,13 @@ app.post("/urls", (req, res) => {
 
 app.get("/urls/new", (req, res) => {
   res.render('urls_new');
+});
+
+app.post("/urls/:shortURL", (req, res) => {
+  const newURL = req.body.newURL;
+  const shortURL = req.params.shortURL;
+  urlDatabase[shortURL] = newURL;
+  res.redirect('/urls');
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
