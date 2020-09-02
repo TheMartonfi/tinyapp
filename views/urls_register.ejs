@@ -10,10 +10,21 @@
 </head>
 
 <body>
-
   <table class='table'>
   <%- include('partials/_header') %>
   </table>
+  <h3 style="margin: 10px;"><b>Register</b></h3>
+  <form method='POST' action='/register'>
+    <div>
+      <label style='margin-left: 10px'>Email:</label>
+      <input style='margin-left: 35px' type='email' name='email' placeholder='email'/>
+    </div>
+    <div>
+      <label style='margin-left: 10px'>Password:</label>
+      <input style='margin-left: 5px; margin-top: 10px' type='password' name='password' placeholder='password'/>
+    </div>
+    <button style='margin-left: 125px; margin-top: 10px'class="btn btn-primary" type='submit'>Register</button>
+  </form>
 
   <!-- Bootstrap JS -->
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
