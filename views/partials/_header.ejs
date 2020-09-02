@@ -9,24 +9,21 @@
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
       </div>
+    </div>
       
-      
-      <% if(username){ %>
+      <% if(user){ %>
         <form method="POST" action="/logout">
-          <div style="margin-right: 0;">
-              <p style="margin: auto; color: white; opacity: 50%; margin-right: 10px;"><b> Logged In As: <%= username %> </b></p>
-              <button class='btn btn-primary' type="submit">Logout</button>
+          <div style='margin-right: 0px;'>
+              <p style='color: white; opacity: 50%; margin: auto;'><b> Logged In As: <%= user.email %> </b></p>
             </div>
-          </form>
+            <button style='margin-left: 10px;' class='btn btn-primary' type="submit">Logout</button>
+        </form>
       <% } else{ %>  
         <form method="POST" action="/login">
-          <div style="margin-left: auto; margin-right: 0; margin-top: auto; margin-bottom: auto;">
-            <label style='color: white; opacity: 50%;'><b>Username: </b></label>
-            <input type='text' name='username' placeholder='username'/>
+          <div style='margin-right: 0;'>
             <button class='btn btn-primary' type="submit">Login</button>
           </div>
         </form>
      <% } %>
-    </div>
   </nav>
 </header>
