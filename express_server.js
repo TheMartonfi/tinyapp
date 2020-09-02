@@ -1,5 +1,3 @@
-//Give short urls anchor tag on index
-
 const express = require("express");
 const bodyParser = require("body-parser");
 
@@ -25,12 +23,13 @@ const generateRandomString = () => {
 };
 
 app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
+  console.log(`TinyApp listening on port ${PORT}!`);
 });
 
 app.get("/urls", (req, res) => {
-  let templateVars = { urls: urlDatabase };
-  res.render('urls_index', templateVars);
+    const username = req.headers.cookie;
+    let templateVars = { urls: urlDatabase, username };
+    res.render('urls_index', templateVars);
 });
 
 app.post("/urls", (req, res) => {
@@ -40,7 +39,20 @@ app.post("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  res.render('urls_new');
+  const username = req.headers.cookie;
+  let templateVars = { username };
+  res.render('urls_new', templateVars);
+});
+
+app.post('/login', (req, res) => {
+  const username = req.body.username;
+  res.cookie('username', username);
+  res.redirect('/urls');
+});
+
+app.post('/logout', (req, res) => {
+  res.clearCookie('username');
+  res.redirect('/urls');
 });
 
 app.post("/urls/:shortURL", (req, res) => {
@@ -57,7 +69,8 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
+  const username = req.headers.cookie;
+  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], username };
   res.render('urls_show', templateVars);
 });
 

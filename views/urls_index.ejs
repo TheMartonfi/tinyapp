@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+  
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -8,9 +9,10 @@
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
   <title>TinyApp</title>
 </head>
+
 <body>
-  <main style="margin: 1em;">
-    <h3>My URLs</h3>
+  <main>
+
     <table class="table">
       <thead>
         <tr>
@@ -22,18 +24,19 @@
       </thead>
       <tbody>
         <%- include('partials/_header') %>
+        <h3 style="margin: 10px;"><b>My URLs</b></h3>
         <% for(let url in urls) { %>
           <tr>
             <td><%= url %></td>
             <td><%= urls[url] %></td>
             <td>
-              <form method="GET" action="/urls/<%= url %>">
-                <button type='submit'>Edit</button>
+              <form style='border-radius: 4px;'method="GET" action="/urls/<%= url %>">
+                <button style='background-color: #008CBA; color: white; border-radius: 4px' type='submit'>Edit</button>
               </form>
             </td>
             <td>
               <form method="POST" action="/urls/<%= url %>/delete">
-                <button type="submit">Delete</button>
+                <button style='background-color: #f44336;; color: white; border-radius: 4px' type="submit">Delete</button>
               </form>
             </td>
           </tr>
