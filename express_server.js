@@ -15,18 +15,7 @@ let urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
-let users = {
-  "userRandomID": {
-    id: "userRandomID", 
-    email: "user@example.com", 
-    password: "purple-monkey-dinosaur"
-  },
- "user2RandomID": {
-    id: "user2RandomID", 
-    email: "user2@example.com", 
-    password: "dishwasher-funk"
-  }
-};
+let users = {};
 
 const generateRandomString = () => {
   let result = '';
@@ -40,6 +29,15 @@ const generateRandomString = () => {
 
 const validateURL = (URL) => {
   return URL.substring(0,7) !== 'http://' && URL.substring(0,8) !== 'https://' ? URL = 'http://' + URL : URL;
+};
+
+const findUserEmail = (email) => {
+  for (const user in users) {
+    if (users[user].email === email) {
+      return true;
+    }
+  }
+  return false;
 };
 
 app.listen(PORT, () => {
@@ -72,16 +70,25 @@ app.get('/register', (req, res) => {
 });
 
 app.post('/register', (req, res) => {
-  const userID = generateRandomString();
-  users[userID] = {
-    id: userID,
-    email: req.body.email,
-    password: req.body.password
+  const id = generateRandomString();
+  const email = req.body.email;
+  const password = req.body.password;
+
+  if (!email || !password) {
+    return res.status(400).send('ERROR 400: Email and/or Password cannot be empty.');
+  }
+
+  if (findUserEmail(email)) {
+    return res.status(400).send('ERROR 400: Email already in use.');
+  }
+
+  users[id] = {
+    id,
+    email,
+    password
   };
 
-  //
-
-  res.cookie('userID', userID);
+  res.cookie('userID', id);
   res.redirect('/urls');
 });
 
