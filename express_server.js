@@ -11,16 +11,28 @@ app.use(cookieParser());
 app.set('view engine', 'ejs');
 
 let urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  'dF43yt': { "b2xVn2": "http://www.lighthouselabs.ca" },
+  'gH73D8': { "9sm5xK": "http://www.google.com" }
 };
 
-let users = {};
+let users = {
+  'dF43yt': {
+    id: 'dF43yt',
+    email: 'test@mail.com',
+    password: '1234'
+  },
+  'gH73D8': {
+    id: 'gH73D8',
+    email: 'test2@mail.com',
+    password: '1234'
+  }
+};
 
 const generateRandomString = () => {
-  let result = '';
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   const charactersLength = characters.length;
+  let result = '';
+
   for (let i = 0; i < 6; i++) {
     result += characters.charAt(Math.floor(Math.random() * charactersLength));
   }
@@ -46,32 +58,42 @@ app.listen(PORT, () => {
 
 app.get("/urls", (req, res) => {
   const userID = req.cookies.userID;
-  let templateVars = { urls: urlDatabase, user: users[userID] };
+  let templateVars = { urls: urlDatabase[userID], user: users[userID] };
+
   res.render('urls_index', templateVars);
 });
 
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
+  const userID = req.cookies.userID;
   let longURL = req.body.longURL;
-  urlDatabase[shortURL] = validateURL(longURL);
+
+  urlDatabase[userID][shortURL] = validateURL(longURL);
   res.redirect(`/urls/${shortURL}`);
 });
 
 app.get("/urls/new", (req, res) => {
   const userID = req.cookies.userID;
   let templateVars = { user: users[userID] };
-  res.render('urls_new', templateVars);
+
+  if (userID) {
+    res.render('urls_new', templateVars);
+  } else {
+    res.redirect('/login');
+  }
 });
 
 app.get('/register', (req, res) => {
   const userID = req.cookies.userID;
   let templateVars = { user: users[userID] };
+
   res.render('urls_register', templateVars);
 });
 
 app.get('/login', (req, res) => {
   const userID = req.cookies.userID;
   let templateVars = { user: users[userID] };
+
   res.render('urls_login', templateVars);
 });
 
@@ -119,23 +141,31 @@ app.post('/logout', (req, res) => {
 app.post("/urls/:shortURL", (req, res) => {
   const newURL = req.body.newURL;
   const shortURL = req.params.shortURL;
-  urlDatabase[shortURL] = validateURL(newURL);
+  const userID = req.cookies.userID;
+
+  urlDatabase[userID][shortURL] = validateURL(newURL);
   res.redirect('/urls');
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
   const shortURL = req.params.shortURL;
-  delete urlDatabase[shortURL];
+  const userID = req.cookies.userID;
+
+  delete urlDatabase[userID][shortURL];
   res.redirect('/urls');
 });
 
 app.get("/urls/:shortURL", (req, res) => {
   const userID = req.cookies.userID;
-  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], user: users[userID] };
+  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[userID][req.params.shortURL], user: users[userID] };
+
   res.render('urls_show', templateVars);
 });
 
+// TypeError for redirect when not signed in
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
+  const userID = req.cookies.userID;
+  const longURL = urlDatabase[userID][req.params.shortURL];
+
   res.redirect(longURL);
 });
