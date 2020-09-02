@@ -52,6 +52,18 @@ const findUserByEmail = (email) => {
   return null;
 };
 
+const findLongURLByShortURL = (shortURL) => {
+
+  for (const url in urlDatabase) {
+    const longURL = urlDatabase[url][shortURL];
+
+    if (urlDatabase[url][shortURL]) {
+      return longURL;
+    }
+  }
+  return null;
+};
+
 app.listen(PORT, () => {
   console.log(`TinyApp listening on port ${PORT}!`);
 });
@@ -162,10 +174,10 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render('urls_show', templateVars);
 });
 
-// TypeError for redirect when not signed in
 app.get("/u/:shortURL", (req, res) => {
   const userID = req.cookies.userID;
-  const longURL = urlDatabase[userID][req.params.shortURL];
+  const shortURL = req.params.shortURL;
+  const longURL = findLongURLByShortURL(shortURL);
 
   res.redirect(longURL);
 });
