@@ -69,6 +69,12 @@ app.get('/register', (req, res) => {
   res.render('urls_register', templateVars);
 });
 
+app.get('/login', (req, res) => {
+  const userID = req.cookies.userID;
+  let templateVars = { user: users[userID] };
+  res.render('urls_login', templateVars);
+});
+
 app.post('/register', (req, res) => {
   const id = generateRandomString();
   const email = req.body.email;
@@ -93,7 +99,10 @@ app.post('/register', (req, res) => {
 });
 
 app.post('/login', (req, res) => {
-  //Should redirect to login page but goes to register for now.
+  res.redirect('/login');
+});
+
+app.post('/register', (req, res) => {
   res.redirect('/register');
 });
 
