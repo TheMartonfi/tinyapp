@@ -1,11 +1,14 @@
-const express = require("express");
-const bodyParser = require("body-parser");
+const express = require('express');
+const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 
 const app = express();
 const PORT = 8080;
 
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(cookieParser());
+
 app.set('view engine', 'ejs');
-app.use(bodyParser.urlencoded({  extended: true  }));
 
 let urlDatabase = {};
 
@@ -28,7 +31,7 @@ app.listen(PORT, () => {
 });
 
 app.get("/urls", (req, res) => {
-  const username = req.headers.cookie;
+  const username = req.cookies.username;
   let templateVars = { urls: urlDatabase, username };
   res.render('urls_index', templateVars);
 });
