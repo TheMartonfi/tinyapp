@@ -23,14 +23,10 @@
     </div>
     <div class='card text-center'>
       <div class='card-body'>
-
         <form method="POST" action="/urls/<%= shortURL %>">
           <label>New URL:</label>
-          <input
-          type='text'
-          name='newURL'
-          />
-          <button type="submit">Update</button>
+          <input type='text' name='newURL' placeholder='http://'/>
+          <button class="btn btn-primary" type="submit">Update</button>
         </form>
     </div>
   </div>

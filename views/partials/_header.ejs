@@ -9,27 +9,28 @@
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
       </div>
-
+      
+      
       <% if(username){ %>
         <div style="margin-left: auto; margin-right: 0; margin-top: auto; margin-bottom: auto;">
             <form method="POST" action="/logout">
-              <p style="margin: auto; color: white; opacity: 50%"><b> Logged In As: <%= username %> </b></p>
+              <p style="margin: auto; color: white; opacity: 50%; margin-right: 10px;"><b> Logged In As: <%= username %> </b></p>
         </div>
-              <button style='background-color: lightgray; color: black; border-radius: 4px; margin-right: 0; margin-left: 8px;' type="submit">Logout</button>
+              <button class='btn btn-primary' type="submit">Logout</button>
             </form>
       <% } else{ %>  
-        <div style="margin-left: auto; margin-right: 0; margin-top: auto; margin-bottom: auto;">
-          <form method="POST" action="/login">
+        <form method="POST" action="/login">
+          <div style="margin-left: auto; margin-right: 0; margin-top: auto; margin-bottom: auto;">
             <label style='color: white; opacity: 50%;'><b>Username: </b></label>
             <input
             type='text'
             name='username'
+            placeholder='username'
             />
-            <button style='background-color: lightgray; color: black; border-radius: 4px' type="submit">Login</button>
-          </form>
+            <button class='btn btn-primary' type="submit">Login</button>
+          </div>
+        </form>
      <% } %>
-     
-      </div>
     </div>
   </nav>
 </header>

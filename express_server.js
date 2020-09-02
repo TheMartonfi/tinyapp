@@ -74,7 +74,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  const username = req.headers.cookie;
+  const username = req.cookies.username;
   let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], username };
   res.render('urls_show', templateVars);
 });

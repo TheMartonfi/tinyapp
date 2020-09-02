@@ -30,13 +30,13 @@
             <td><a href="/u/<%= url %>"><%= url %></a></td>
             <td><%= urls[url] %></td>
             <td>
-              <form style='border-radius: 4px;'method="GET" action="/urls/<%= url %>">
-                <button style='background-color: #008CBA; color: white; border-radius: 4px' type='submit'>Edit</button>
+              <form style='border-radius: 4px;' method="GET" action="/urls/<%= url %>">
+                <button class='btn btn-primary' type='submit'>Edit</button>
               </form>
             </td>
             <td>
               <form method="POST" action="/urls/<%= url %>/delete">
-                <button style='background-color: #f44336;; color: white; border-radius: 4px' type="submit">Delete</button>
+                <button class='btn btn-primary' type="submit">Delete</button>
               </form>
             </td>
           </tr>
