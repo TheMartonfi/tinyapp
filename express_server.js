@@ -93,7 +93,7 @@ app.post('/register', (req, res) => {
 });
 
 app.post('/login', (req, res) => {
-  //Should redirect to login page but goes to register for now
+  //Should redirect to login page but goes to register for now.
   res.redirect('/register');
 });
 
