@@ -31,13 +31,13 @@ const validateURL = (URL) => {
   return URL.substring(0,7) !== 'http://' && URL.substring(0,8) !== 'https://' ? URL = 'http://' + URL : URL;
 };
 
-const findUserEmail = (email) => {
+const findUserByEmail = (email) => {
   for (const user in users) {
     if (users[user].email === email) {
-      return true;
+      return users[user];
     }
   }
-  return false;
+  return null;
 };
 
 app.listen(PORT, () => {
@@ -81,11 +81,11 @@ app.post('/register', (req, res) => {
   const password = req.body.password;
 
   if (!email || !password) {
-    return res.status(400).send('ERROR 400: Email and/or Password cannot be empty.');
+    return res.status(400).send('ERROR 400: Email and/or Password cannot be empty');
   }
 
-  if (findUserEmail(email)) {
-    return res.status(400).send('ERROR 400: Email already in use.');
+  if (findUserByEmail(email)) {
+    return res.status(400).send('ERROR 400: Email already in use');
   }
 
   users[id] = {
@@ -99,11 +99,16 @@ app.post('/register', (req, res) => {
 });
 
 app.post('/login', (req, res) => {
-  res.redirect('/login');
-});
+  const email = req.body.email;
+  const password = req.body.password;
+  const foundUser = findUserByEmail(email)
 
-app.post('/register', (req, res) => {
-  res.redirect('/register');
+  if (foundUser && foundUser.password === password) {
+    res.cookie('userID', foundUser.id);
+    res.redirect('/urls');
+  } else {
+    res.status(403).send('ERROR 403: Email or Password is incorrect');
+  }
 });
 
 app.post('/logout', (req, res) => {
