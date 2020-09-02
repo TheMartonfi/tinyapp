@@ -7,10 +7,7 @@ const PORT = 8080;
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({  extended: true  }));
 
-let urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
-};
+let urlDatabase = {};
 
 const generateRandomString = () => {
   let result = '';
@@ -22,19 +19,24 @@ const generateRandomString = () => {
   return result;
 };
 
+const validateURL = (URL) => {
+  return URL.substring(0,7) !== 'http://' && URL.substring(0,8) !== 'https://' ? URL = 'http://' + URL : URL;
+};
+
 app.listen(PORT, () => {
   console.log(`TinyApp listening on port ${PORT}!`);
 });
 
 app.get("/urls", (req, res) => {
-    const username = req.headers.cookie;
-    let templateVars = { urls: urlDatabase, username };
-    res.render('urls_index', templateVars);
+  const username = req.headers.cookie;
+  let templateVars = { urls: urlDatabase, username };
+  res.render('urls_index', templateVars);
 });
 
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
-  urlDatabase[shortURL] = req.body.longURL;
+  let longURL = req.body.longURL;
+  urlDatabase[shortURL] = validateURL(longURL);
   res.redirect(`/urls/${shortURL}`);
 });
 
@@ -58,7 +60,7 @@ app.post('/logout', (req, res) => {
 app.post("/urls/:shortURL", (req, res) => {
   const newURL = req.body.newURL;
   const shortURL = req.params.shortURL;
-  urlDatabase[shortURL] = newURL;
+  urlDatabase[shortURL] = validateURL(newURL);
   res.redirect('/urls');
 });
 
