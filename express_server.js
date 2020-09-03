@@ -73,16 +73,16 @@ const sendErrorMessage = (status, message, res) => {
   return res.status(status).render('error', templateVars);
 };
 
-const isUserLoggedIn = (user) => {
-  if (user) {
+const isUserLoggedIn = (userID) => {
+  if (userID) {
     return true;
   } else {
     return false;
   }
 };
 
-const doesUserOwnURL = (user, url) => {
-    if (urlDatabase[user][url]) {
+const doesUserOwnURL = (userID, shortURL) => {
+    if (urlDatabase[userID][shortURL]) {
       return true;
     } else {
       return false;
@@ -114,10 +114,12 @@ app.post("/urls", (req, res) => {
   const userID = req.cookies.userID;
   let longURL = req.body.longURL;
 
-  isAccessAllowed(userID, shortURL, res, () => {
+  if (isUserLoggedIn(userID)) {
     urlDatabase[userID][shortURL] = validateURL(longURL);
     res.redirect(`/urls/${shortURL}`);
-  });
+  } else {
+    sendErrorMessage('403', 'Access denied', res);
+  }
 });
 
 app.get("/urls/new", (req, res) => {
