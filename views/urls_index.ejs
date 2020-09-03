@@ -12,17 +12,21 @@
 
 <body>
   <main>
+    <% if (!user) { %>
+      <%- include('partials/_header') %>
+      <p style='margin-left: 10px; margin-top: 5px; font-size: 18px'>Please log in or register to start using TinyApp!</p>
+    <% } else { %>
     <table class="table">
-      <thead>
-        <tr>
-          <th scope="col">Short URL</th>
-          <th scope="col">Long URL</th>
-          <th scope="col">Edit</th>
-          <th scope="col">Delete</th>
-        </tr>
-      </thead>
-      <tbody>
-        <%- include('partials/_header') %>
+      <%- include('partials/_header') %>
+        <thead>
+          <tr>
+            <th scope="col">Short URL</th>
+            <th scope="col">Long URL</th>
+            <th scope="col">Edit</th>
+            <th scope="col">Delete</th>
+          </tr>
+        </thead>
+        <tbody>
         <h3 style="margin: 10px;"><b>My URLs</b></h3>
         <% for(let url in urls) { %>
           <tr>
@@ -39,6 +43,7 @@
               </form>
             </td>
           </tr>
+          <% } %>
         <% } %>
       </tbody>
     </table>
