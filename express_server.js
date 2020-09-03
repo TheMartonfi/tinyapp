@@ -5,6 +5,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
+const bcrypt = require('bcrypt');
 const { generateRandomString, validateURL, findUserByEmail, findLongURLByShortURL, sendErrorMessage, isUserLoggedIn, isAccessAllowed } = require('./helper_functions');
 
 const app = express();
@@ -24,12 +25,12 @@ let users = {
   'dF43yt': {
     userID: 'dF43yt',
     email: 'test@mail.com',
-    password: '1234'
+    password: bcrypt.hashSync('1234', 3)
   },
   'gH73D8': {
     userID: 'gH73D8',
     email: 'test2@mail.com',
-    password: '1234'
+    password: bcrypt.hashSync('1234', 3)
   }
 };
 
@@ -96,7 +97,7 @@ app.post('/register', (req, res) => {
   users[userID] = {
     userID,
     email,
-    password
+    'password': bcrypt.hashSync(password, 3)
   };
 
   urlDatabase[userID] = {};
@@ -109,7 +110,7 @@ app.post('/login', (req, res) => {
   const password = req.body.password;
   const foundUser = findUserByEmail(email, users);
 
-  if (foundUser && foundUser.password === password) {
+  if (foundUser && bcrypt.compareSync(password, foundUser.password)) {
     res.cookie('userID', foundUser.userID);
     res.redirect('/urls');
   } else {
@@ -126,7 +127,6 @@ app.post("/urls/:shortURL", (req, res) => {
   const newURL = req.body.newURL;
   const shortURL = req.params.shortURL;
   const userID = req.cookies.userID;
-
 
   if (findLongURLByShortURL(shortURL, urlDatabase)) {
     isAccessAllowed(userID, shortURL, urlDatabase, res, () => {
