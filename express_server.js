@@ -108,7 +108,6 @@ app.get("/urls", (req, res) => {
   res.render('urls_index', templateVars);
 });
 
-// Access denied
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
   const userID = req.cookies.userID;
@@ -153,21 +152,19 @@ app.post('/register', (req, res) => {
   const password = req.body.password;
 
   if (!email || !password) {
-    return sendErrorMessage('400', 'Email and/or Password cannot be empty', res);
+    sendErrorMessage('400', 'Email and/or Password cannot be empty', res);
+  } else if (findUserByEmail(email)) {
+    sendErrorMessage('400', 'Email already in use', res);
+  } else {
+    users[id] = {
+      id,
+      email,
+      password
+    };
+  
+    res.cookie('userID', id);
+    res.redirect('/urls');
   }
-
-  if (findUserByEmail(email)) {
-    return sendErrorMessage('400', 'Email already in use', res);
-  }
-
-  users[id] = {
-    id,
-    email,
-    password
-  };
-
-  res.cookie('userID', id);
-  res.redirect('/urls');
 });
 
 app.post('/login', (req, res) => {
@@ -179,7 +176,7 @@ app.post('/login', (req, res) => {
     res.cookie('userID', foundUser.id);
     res.redirect('/urls');
   } else {
-    return sendErrorMessage('403', 'Email or Password is incorrect', res);
+    sendErrorMessage('403', 'Email or Password is incorrect', res);
   }
 });
 
@@ -224,5 +221,9 @@ app.get("/u/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   const longURL = findLongURLByShortURL(shortURL);
 
-  res.redirect(longURL);
+  if (longURL) {
+    res.redirect(longURL);
+  } else {
+    sendErrorMessage('404', 'Page not found', res);
+  }
 });
