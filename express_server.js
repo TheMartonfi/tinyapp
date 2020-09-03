@@ -5,6 +5,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
+const { generateRandomString, validateURL, findUserByEmail, findLongURLByShortURL, sendErrorMessage, isUserLoggedIn, isAccessAllowed } = require('./helper_functions');
 
 const app = express();
 const PORT = 8080;
@@ -21,79 +22,14 @@ let urlDatabase = {
 
 let users = {
   'dF43yt': {
-    id: 'dF43yt',
+    userID: 'dF43yt',
     email: 'test@mail.com',
     password: '1234'
   },
   'gH73D8': {
-    id: 'gH73D8',
+    userID: 'gH73D8',
     email: 'test2@mail.com',
     password: '1234'
-  }
-};
-
-const generateRandomString = () => {
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  const charactersLength = characters.length;
-  let result = '';
-
-  for (let i = 0; i < 6; i++) {
-    result += characters.charAt(Math.floor(Math.random() * charactersLength));
-  }
-  return result;
-};
-
-const validateURL = (URL) => {
-  return URL.substring(0,7) !== 'http://' && URL.substring(0,8) !== 'https://' ? URL = 'http://' + URL : URL;
-};
-
-const findUserByEmail = (email) => {
-  for (const user in users) {
-    if (users[user].email === email) {
-      return users[user];
-    }
-  }
-  return null;
-};
-
-const findLongURLByShortURL = (shortURL) => {
-
-  for (const url in urlDatabase) {
-    const longURL = urlDatabase[url][shortURL];
-
-    if (urlDatabase[url][shortURL]) {
-      return longURL;
-    }
-  }
-  return null;
-};
-
-const sendErrorMessage = (status, message, res) => {
-  let templateVars = { status, message, user: null };
-  return res.status(status).render('error', templateVars);
-};
-
-const isUserLoggedIn = (userID) => {
-  if (userID) {
-    return true;
-  } else {
-    return false;
-  }
-};
-
-const doesUserOwnURL = (userID, shortURL) => {
-    if (urlDatabase[userID][shortURL]) {
-      return true;
-    } else {
-      return false;
-    }
-};
-
-const isAccessAllowed = (userID, shortURL, res, cb) => {
-  if (isUserLoggedIn(userID, res) && doesUserOwnURL(userID, shortURL)) {
-    cb();
-  } else {
-    sendErrorMessage('403', 'Access denied', res);
   }
 };
 
@@ -147,33 +83,34 @@ app.get('/login', (req, res) => {
 });
 
 app.post('/register', (req, res) => {
-  const id = generateRandomString();
+  const userID = generateRandomString();
   const email = req.body.email;
   const password = req.body.password;
 
   if (!email || !password) {
-    sendErrorMessage('400', 'Email and/or Password cannot be empty', res);
-  } else if (findUserByEmail(email)) {
-    sendErrorMessage('400', 'Email already in use', res);
-  } else {
-    users[id] = {
-      id,
-      email,
-      password
-    };
-  
-    res.cookie('userID', id);
-    res.redirect('/urls');
+    return sendErrorMessage('400', 'Email and/or Password cannot be empty', res);
+  } else if (findUserByEmail(email, users)) {
+    return sendErrorMessage('400', 'Email already in use', res);
   }
+
+  users[userID] = {
+    userID,
+    email,
+    password
+  };
+
+  urlDatabase[userID] = {};
+  res.cookie('userID', userID);
+  res.redirect('/urls');
 });
 
 app.post('/login', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-  const foundUser = findUserByEmail(email);
+  const foundUser = findUserByEmail(email, users);
 
   if (foundUser && foundUser.password === password) {
-    res.cookie('userID', foundUser.id);
+    res.cookie('userID', foundUser.userID);
     res.redirect('/urls');
   } else {
     sendErrorMessage('403', 'Email or Password is incorrect', res);
@@ -190,7 +127,7 @@ app.post("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   const userID = req.cookies.userID;
 
-  isAccessAllowed(userID, shortURL, res, () => {
+  isAccessAllowed(userID, shortURL, urlDatabase, res, () => {
     urlDatabase[userID][shortURL] = validateURL(newURL);
     res.redirect('/urls');
   });
@@ -200,7 +137,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   const shortURL = req.params.shortURL;
   const userID = req.cookies.userID;
 
-  isAccessAllowed(userID, shortURL, res, () => {
+  isAccessAllowed(userID, shortURL, urlDatabase, res, () => {
     delete urlDatabase[userID][shortURL];
     res.redirect('/urls');
   });
@@ -210,16 +147,15 @@ app.get("/urls/:shortURL", (req, res) => {
   const userID = req.cookies.userID;
   const shortURL = req.params.shortURL;
 
-  isAccessAllowed(userID, shortURL, res, () => {
+  isAccessAllowed(userID, shortURL, urlDatabase, res, () => {
     let templateVars = { shortURL, longURL: urlDatabase[userID][shortURL], user: users[userID] };
     res.render('urls_show', templateVars);
   });
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  const userID = req.cookies.userID;
   const shortURL = req.params.shortURL;
-  const longURL = findLongURLByShortURL(shortURL);
+  const longURL = findLongURLByShortURL(shortURL, urlDatabase);
 
   if (longURL) {
     res.redirect(longURL);
