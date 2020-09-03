@@ -74,9 +74,19 @@ const sendErrorMessage = (status, message, res) => {
 };
 
 const isUserLoggedIn = (user) => {
-  if (!user || user !== userID) {
-    sendErrorMessage('403', 'Acces denied', res);
+  if (user) {
+    return true;
+  } else {
+    return false;
   }
+};
+
+const doesUserOwnURL = (user, url) => {
+    if (urlDatabase[user][url]) {
+      return true;
+    } else {
+      return false;
+    }
 };
 
 app.listen(PORT, () => {
@@ -90,6 +100,7 @@ app.get("/urls", (req, res) => {
   res.render('urls_index', templateVars);
 });
 
+// *************************************************
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
   const userID = req.cookies.userID;
@@ -175,13 +186,20 @@ app.post("/urls/:shortURL", (req, res) => {
   res.redirect('/urls');
 });
 
-// ********************************************
 app.post("/urls/:shortURL/delete", (req, res) => {
   const shortURL = req.params.shortURL;
   const userID = req.cookies.userID;
 
-  delete urlDatabase[userID][shortURL];
-  res.redirect('/urls');
+  if (isUserLoggedIn(userID, res)) {
+    if (doesUserOwnURL(userID, shortURL)) {
+      delete urlDatabase[userID][shortURL];
+      res.redirect('/urls');
+    } else {
+      return sendErrorMessage('403', 'Access denied', res);
+    }
+  } else {
+    return sendErrorMessage('403', 'Access denied', res);
+  }
 });
 
 // ********************************************
