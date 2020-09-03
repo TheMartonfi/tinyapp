@@ -7,7 +7,7 @@ const bodyParser = require('body-parser');
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
 const methodOverride = require('method-override');
-const { generateRandomString, validateURL, findUserByEmail, findLongURLByShortURL, sendErrorMessage, isUserLoggedIn, isAccessAllowed, isShortURLValid } = require('./helpers');
+const { generateRandomString, validateURL, findUserByEmail, findLongURLByShortURL, sendErrorMessage, isUserLoggedIn, isShortURLValid } = require('./helpers');
 
 const app = express();
 const PORT = 8080;
@@ -65,14 +65,10 @@ app.get("/urls/:shortURL", (req, res) => {
   const userID = req.session.userID;
   const shortURL = req.params.shortURL;
 
-  if (findLongURLByShortURL(shortURL, urlDatabase)) {
-    isAccessAllowed(userID, shortURL, urlDatabase, res, () => {
-      let templateVars = { shortURL, longURL: urlDatabase[userID][shortURL], user: users[userID] };
-      res.render('urls_show', templateVars);
-    });
-  } else {
-    sendErrorMessage('404', 'Page not found', res);
-  }
+  isShortURLValid(userID, shortURL, urlDatabase, res, () => {
+    let templateVars = { shortURL, longURL: urlDatabase[userID][shortURL], user: users[userID] };
+    res.render('urls_show', templateVars);
+  });
 });
 
 app.get("/u/:shortURL", (req, res) => {
@@ -125,7 +121,6 @@ app.post('/logout', (req, res) => {
   req.session.userID = null;
   res.redirect('/urls');
 });
-
 
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
