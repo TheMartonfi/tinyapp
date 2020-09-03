@@ -6,19 +6,20 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
-const { generateRandomString, validateURL, findUserByEmail, findLongURLByShortURL, sendErrorMessage, isUserLoggedIn, isAccessAllowed } = require('./helpers');
+const methodOverride = require('method-override');
+const { generateRandomString, validateURL, findUserByEmail, findLongURLByShortURL, sendErrorMessage, isUserLoggedIn, isAccessAllowed, isShortURLValid } = require('./helpers');
 
 const app = express();
 const PORT = 8080;
 
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(methodOverride('_method'));
 app.use(cookieSession({
   name: 'session',
   keys: ['superSecretKey']
 }));
 
 app.set('view engine', 'ejs');
-
 
 app.listen(PORT, () => {
   console.log(`TinyApp listening on port ${PORT}!`);
@@ -85,46 +86,33 @@ app.get("/u/:shortURL", (req, res) => {
   }
 });
 
-app.post("/urls", (req, res) => {
-  const shortURL = generateRandomString();
-  const userID = req.session.userID;
-  let longURL = req.body.longURL;
-
-  if (isUserLoggedIn(userID)) {
-    urlDatabase[userID][shortURL] = validateURL(longURL);
-    res.redirect(`/urls/${shortURL}`);
-  } else {
-    sendErrorMessage('403', 'Access denied', res);
-  }
-});
-
 app.post('/register', (req, res) => {
   const userID = generateRandomString();
   const email = req.body.email;
   const password = req.body.password;
-
+  
   if (!email || !password) {
-    return sendErrorMessage('400', 'Email and/or Password cannot be empty', res);
+    sendErrorMessage('400', 'Email and/or Password cannot be empty', res);
   } else if (findUserByEmail(email, users)) {
-    return sendErrorMessage('400', 'Email already in use', res);
+    sendErrorMessage('400', 'Email already in use', res);
+  } else {
+    users[userID] = {
+      userID,
+      email,
+      'password': bcrypt.hashSync(password, 3)
+    };
+    
+    urlDatabase[userID] = {};
+    req.session.userID = userID;
+    res.redirect('/urls');
   }
-
-  users[userID] = {
-    userID,
-    email,
-    'password': bcrypt.hashSync(password, 3)
-  };
-
-  urlDatabase[userID] = {};
-  req.session.userID = userID;
-  res.redirect('/urls');
 });
 
 app.post('/login', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
   const foundUser = findUserByEmail(email, users);
-
+  
   if (foundUser && bcrypt.compareSync(password, foundUser.password)) {
     req.session.userID = foundUser.userID;
     res.redirect('/urls');
@@ -138,31 +126,37 @@ app.post('/logout', (req, res) => {
   res.redirect('/urls');
 });
 
-app.post("/urls/:shortURL", (req, res) => {
-  const newURL = req.body.newURL;
-  const shortURL = req.params.shortURL;
-  const userID = req.session.userID;
 
-  if (findLongURLByShortURL(shortURL, urlDatabase)) {
-    isAccessAllowed(userID, shortURL, urlDatabase, res, () => {
-      urlDatabase[userID][shortURL] = validateURL(newURL);
-      res.redirect('/urls');
-    });
+app.post("/urls", (req, res) => {
+  const shortURL = generateRandomString();
+  const userID = req.session.userID;
+  let longURL = req.body.longURL;
+  
+  if (isUserLoggedIn(userID)) {
+    urlDatabase[userID][shortURL] = validateURL(longURL);
+    res.redirect(`/urls/${shortURL}`);
   } else {
-    sendErrorMessage('404', 'Page not found', res);
+    sendErrorMessage('403', 'Access denied', res);
   }
 });
 
-app.post("/urls/:shortURL/delete", (req, res) => {
+app.put("/urls/:shortURL", (req, res) => {
+  const newURL = req.body.newURL;
   const shortURL = req.params.shortURL;
   const userID = req.session.userID;
+  
+  isShortURLValid(userID, shortURL, urlDatabase, res, () => {
+    urlDatabase[userID][shortURL] = validateURL(newURL);
+    res.redirect('/urls');
+  });
+});
 
-  if (findLongURLByShortURL(shortURL, urlDatabase)) {
-    isAccessAllowed(userID, shortURL, urlDatabase, res, () => {
-      delete urlDatabase[userID][shortURL];
-      res.redirect('/urls');
-    });
-  } else {
-    sendErrorMessage('404', 'Page not found', res);
-  }
+app.delete("/urls/:shortURL/delete", (req, res) => {
+  const shortURL = req.params.shortURL;
+  const userID = req.session.userID;
+  
+  isShortURLValid(userID, shortURL, urlDatabase, res, () => {
+    delete urlDatabase[userID][shortURL];
+    res.redirect('/urls');
+  });
 });

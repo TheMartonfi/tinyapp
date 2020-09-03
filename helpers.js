@@ -61,5 +61,14 @@ const isAccessAllowed = (userID, shortURL, urlDatabase, res, cb) => {
     sendErrorMessage('403', 'Access denied', res);
   }
 };
+const isShortURLValid = (userID, shortURL, urlDatabase, res, cb) => {
+  if (findLongURLByShortURL(shortURL, urlDatabase)) {
+    isAccessAllowed(userID, shortURL, urlDatabase, res, () => {
+      cb();
+    });
+  } else {
+    sendErrorMessage('404', 'Page not found', res);
+  }
+};
 
-module.exports = { generateRandomString, validateURL, findUserByEmail, findLongURLByShortURL, sendErrorMessage, isUserLoggedIn, doesUserOwnURL, isAccessAllowed };
+module.exports = { generateRandomString, validateURL, findUserByEmail, findLongURLByShortURL, sendErrorMessage, isUserLoggedIn, doesUserOwnURL, isAccessAllowed, isShortURLValid };
