@@ -19,33 +19,70 @@ app.use(cookieSession({
 
 app.set('view engine', 'ejs');
 
-let urlDatabase = {
-  'dF43yt': { "b2xVn2": "http://www.lighthouselabs.ca" },
-  'gH73D8': { "9sm5xK": "http://www.google.com" }
-};
-
-let users = {
-  'dF43yt': {
-    userID: 'dF43yt',
-    email: 'test@mail.com',
-    password: bcrypt.hashSync('1234', 3)
-  },
-  'gH73D8': {
-    userID: 'gH73D8',
-    email: 'test2@mail.com',
-    password: bcrypt.hashSync('1234', 3)
-  }
-};
 
 app.listen(PORT, () => {
   console.log(`TinyApp listening on port ${PORT}!`);
 });
+
+let urlDatabase = {};
+let users = {};
 
 app.get("/urls", (req, res) => {
   const userID = req.session.userID;
   let templateVars = { urls: urlDatabase[userID], user: users[userID] };
 
   res.render('urls_index', templateVars);
+});
+
+
+app.get("/urls/new", (req, res) => {
+  const userID = req.session.userID;
+  let templateVars = { user: users[userID] };
+  
+  if (userID) {
+    res.render('urls_new', templateVars);
+  } else {
+    res.redirect('/login');
+  }
+});
+
+app.get('/register', (req, res) => {
+  const userID = req.session.userID;
+  let templateVars = { user: users[userID] };
+  
+  res.render('urls_register', templateVars);
+});
+
+app.get('/login', (req, res) => {
+  const userID = req.session.userID;
+  let templateVars = { user: users[userID] };
+  
+  res.render('urls_login', templateVars);
+});
+
+app.get("/urls/:shortURL", (req, res) => {
+  const userID = req.session.userID;
+  const shortURL = req.params.shortURL;
+
+  if (findLongURLByShortURL(shortURL, urlDatabase)) {
+    isAccessAllowed(userID, shortURL, urlDatabase, res, () => {
+      let templateVars = { shortURL, longURL: urlDatabase[userID][shortURL], user: users[userID] };
+      res.render('urls_show', templateVars);
+    });
+  } else {
+    sendErrorMessage('404', 'Page not found', res);
+  }
+});
+
+app.get("/u/:shortURL", (req, res) => {
+  const shortURL = req.params.shortURL;
+  const longURL = findLongURLByShortURL(shortURL, urlDatabase);
+
+  if (longURL) {
+    res.redirect(longURL);
+  } else {
+    sendErrorMessage('404', 'Page not found', res);
+  }
 });
 
 app.post("/urls", (req, res) => {
@@ -59,31 +96,6 @@ app.post("/urls", (req, res) => {
   } else {
     sendErrorMessage('403', 'Access denied', res);
   }
-});
-
-app.get("/urls/new", (req, res) => {
-  const userID = req.session.userID;
-  let templateVars = { user: users[userID] };
-
-  if (userID) {
-    res.render('urls_new', templateVars);
-  } else {
-    res.redirect('/login');
-  }
-});
-
-app.get('/register', (req, res) => {
-  const userID = req.session.userID;
-  let templateVars = { user: users[userID] };
-
-  res.render('urls_register', templateVars);
-});
-
-app.get('/login', (req, res) => {
-  const userID = req.session.userID;
-  let templateVars = { user: users[userID] };
-
-  res.render('urls_login', templateVars);
 });
 
 app.post('/register', (req, res) => {
@@ -150,32 +162,6 @@ app.post("/urls/:shortURL/delete", (req, res) => {
       delete urlDatabase[userID][shortURL];
       res.redirect('/urls');
     });
-  } else {
-    sendErrorMessage('404', 'Page not found', res);
-  }
-});
-
-app.get("/urls/:shortURL", (req, res) => {
-  const userID = req.session.userID;
-  const shortURL = req.params.shortURL;
-
-  if (findLongURLByShortURL(shortURL, urlDatabase)) {
-    isAccessAllowed(userID, shortURL, urlDatabase, res, () => {
-      let templateVars = { shortURL, longURL: urlDatabase[userID][shortURL], user: users[userID] };
-      res.render('urls_show', templateVars);
-    });
-  } else {
-    sendErrorMessage('404', 'Page not found', res);
-  }
-});
-
-app.get("/u/:shortURL", (req, res) => {
-  const userID = req.session.userID;
-  const shortURL = req.params.shortURL;
-  const longURL = findLongURLByShortURL(shortURL, urlDatabase);
-
-  if (longURL) {
-    res.redirect(longURL);
   } else {
     sendErrorMessage('404', 'Page not found', res);
   }
