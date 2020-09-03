@@ -23,7 +23,6 @@ const findUserByEmail = (email, users) => {
 };
 
 const findLongURLByShortURL = (shortURL, urlDatabase) => {
-
   for (const url in urlDatabase) {
     const longURL = urlDatabase[url][shortURL];
 
@@ -63,4 +62,4 @@ const isAccessAllowed = (userID, shortURL, urlDatabase, res, cb) => {
   }
 };
 
-module.exports = { generateRandomString, validateURL, findUserByEmail, findLongURLByShortURL, sendErrorMessage, isUserLoggedIn, isAccessAllowed };
+module.exports = { generateRandomString, validateURL, findUserByEmail, findLongURLByShortURL, sendErrorMessage, isUserLoggedIn, doesUserOwnURL, isAccessAllowed };

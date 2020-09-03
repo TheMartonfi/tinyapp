@@ -127,30 +127,43 @@ app.post("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   const userID = req.cookies.userID;
 
-  isAccessAllowed(userID, shortURL, urlDatabase, res, () => {
-    urlDatabase[userID][shortURL] = validateURL(newURL);
-    res.redirect('/urls');
-  });
+
+  if (findLongURLByShortURL(shortURL, urlDatabase)) {
+    isAccessAllowed(userID, shortURL, urlDatabase, res, () => {
+      urlDatabase[userID][shortURL] = validateURL(newURL);
+      res.redirect('/urls');
+    });
+  } else {
+    sendErrorMessage('404', 'Page not found', res);
+  }
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
   const shortURL = req.params.shortURL;
   const userID = req.cookies.userID;
 
-  isAccessAllowed(userID, shortURL, urlDatabase, res, () => {
-    delete urlDatabase[userID][shortURL];
-    res.redirect('/urls');
-  });
+  if (findLongURLByShortURL(shortURL, urlDatabase)) {
+    isAccessAllowed(userID, shortURL, urlDatabase, res, () => {
+      delete urlDatabase[userID][shortURL];
+      res.redirect('/urls');
+    });
+  } else {
+    sendErrorMessage('404', 'Page not found', res);
+  }
 });
 
 app.get("/urls/:shortURL", (req, res) => {
   const userID = req.cookies.userID;
   const shortURL = req.params.shortURL;
 
-  isAccessAllowed(userID, shortURL, urlDatabase, res, () => {
-    let templateVars = { shortURL, longURL: urlDatabase[userID][shortURL], user: users[userID] };
-    res.render('urls_show', templateVars);
-  });
+  if (findLongURLByShortURL(shortURL, urlDatabase)) {
+    isAccessAllowed(userID, shortURL, urlDatabase, res, () => {
+      let templateVars = { shortURL, longURL: urlDatabase[userID][shortURL], user: users[userID] };
+      res.render('urls_show', templateVars);
+    });
+  } else {
+    sendErrorMessage('404', 'Page not found', res);
+  }
 });
 
 app.get("/u/:shortURL", (req, res) => {
