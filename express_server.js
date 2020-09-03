@@ -6,7 +6,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
-const { generateRandomString, validateURL, findUserByEmail, findLongURLByShortURL, sendErrorMessage, isUserLoggedIn, isAccessAllowed } = require('./helper_functions');
+const { generateRandomString, validateURL, findUserByEmail, findLongURLByShortURL, sendErrorMessage, isUserLoggedIn, isAccessAllowed } = require('./helpers');
 
 const app = express();
 const PORT = 8080;
@@ -170,6 +170,7 @@ app.get("/urls/:shortURL", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
+  const userID = req.session.userID;
   const shortURL = req.params.shortURL;
   const longURL = findLongURLByShortURL(shortURL, urlDatabase);
 
