@@ -89,6 +89,14 @@ const doesUserOwnURL = (user, url) => {
     }
 };
 
+const isAccessAllowed = (userID, shortURL, res, cb) => {
+  if (isUserLoggedIn(userID, res) && doesUserOwnURL(userID, shortURL)) {
+    cb();
+  } else {
+    sendErrorMessage('403', 'Access denied', res);
+  }
+};
+
 app.listen(PORT, () => {
   console.log(`TinyApp listening on port ${PORT}!`);
 });
@@ -100,14 +108,16 @@ app.get("/urls", (req, res) => {
   res.render('urls_index', templateVars);
 });
 
-// *************************************************
+// Access denied
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
   const userID = req.cookies.userID;
   let longURL = req.body.longURL;
 
-  urlDatabase[userID][shortURL] = validateURL(longURL);
-  res.redirect(`/urls/${shortURL}`);
+  isAccessAllowed(userID, shortURL, res, () => {
+    urlDatabase[userID][shortURL] = validateURL(longURL);
+    res.redirect(`/urls/${shortURL}`);
+  });
 });
 
 app.get("/urls/new", (req, res) => {
@@ -176,38 +186,35 @@ app.post('/logout', (req, res) => {
   res.redirect('/urls');
 });
 
-// *******************************************
 app.post("/urls/:shortURL", (req, res) => {
   const newURL = req.body.newURL;
   const shortURL = req.params.shortURL;
   const userID = req.cookies.userID;
 
-  urlDatabase[userID][shortURL] = validateURL(newURL);
-  res.redirect('/urls');
+  isAccessAllowed(userID, shortURL, res, () => {
+    urlDatabase[userID][shortURL] = validateURL(newURL);
+    res.redirect('/urls');
+  });
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
   const shortURL = req.params.shortURL;
   const userID = req.cookies.userID;
 
-  if (isUserLoggedIn(userID, res)) {
-    if (doesUserOwnURL(userID, shortURL)) {
-      delete urlDatabase[userID][shortURL];
-      res.redirect('/urls');
-    } else {
-      return sendErrorMessage('403', 'Access denied', res);
-    }
-  } else {
-    return sendErrorMessage('403', 'Access denied', res);
-  }
+  isAccessAllowed(userID, shortURL, res, () => {
+    delete urlDatabase[userID][shortURL];
+    res.redirect('/urls');
+  });
 });
 
-// ********************************************
 app.get("/urls/:shortURL", (req, res) => {
   const userID = req.cookies.userID;
-  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[userID][req.params.shortURL], user: users[userID] };
+  const shortURL = req.params.shortURL;
 
-  res.render('urls_show', templateVars);
+  isAccessAllowed(userID, shortURL, res, () => {
+    let templateVars = { shortURL, longURL: urlDatabase[userID][shortURL], user: users[userID] };
+    res.render('urls_show', templateVars);
+  });
 });
 
 app.get("/u/:shortURL", (req, res) => {
