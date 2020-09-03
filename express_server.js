@@ -1,5 +1,3 @@
-// Add function that checks if user is logged in and can access certain GET / POST requests
-
 // (Stretch) the date the short URL was created
 // (Stretch) the number of times the short URL was visited
 // (Stretch) the number of unique visits for the short URL
@@ -70,6 +68,17 @@ const findLongURLByShortURL = (shortURL) => {
   return null;
 };
 
+const sendErrorMessage = (status, message, res) => {
+  let templateVars = { status, message, user: null };
+  return res.status(status).render('error', templateVars);
+};
+
+const isUserLoggedIn = (user) => {
+  if (!user || user !== userID) {
+    sendErrorMessage('403', 'Acces denied', res);
+  }
+};
+
 app.listen(PORT, () => {
   console.log(`TinyApp listening on port ${PORT}!`);
 });
@@ -121,11 +130,11 @@ app.post('/register', (req, res) => {
   const password = req.body.password;
 
   if (!email || !password) {
-    return res.status(400).send('ERROR 400: Email and/or Password cannot be empty');
+    return sendErrorMessage('400', 'Email and/or Password cannot be empty', res);
   }
 
   if (findUserByEmail(email)) {
-    return res.status(400).send('ERROR 400: Email already in use');
+    return sendErrorMessage('400', 'Email already in use', res);
   }
 
   users[id] = {
@@ -141,13 +150,13 @@ app.post('/register', (req, res) => {
 app.post('/login', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-  const foundUser = findUserByEmail(email)
+  const foundUser = findUserByEmail(email);
 
   if (foundUser && foundUser.password === password) {
     res.cookie('userID', foundUser.id);
     res.redirect('/urls');
   } else {
-    res.status(403).send('ERROR 403: Email or Password is incorrect');
+    return sendErrorMessage('403', 'Email or Password is incorrect', res);
   }
 });
 
@@ -156,6 +165,7 @@ app.post('/logout', (req, res) => {
   res.redirect('/urls');
 });
 
+// *******************************************
 app.post("/urls/:shortURL", (req, res) => {
   const newURL = req.body.newURL;
   const shortURL = req.params.shortURL;
@@ -165,6 +175,7 @@ app.post("/urls/:shortURL", (req, res) => {
   res.redirect('/urls');
 });
 
+// ********************************************
 app.post("/urls/:shortURL/delete", (req, res) => {
   const shortURL = req.params.shortURL;
   const userID = req.cookies.userID;
@@ -173,6 +184,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   res.redirect('/urls');
 });
 
+// ********************************************
 app.get("/urls/:shortURL", (req, res) => {
   const userID = req.cookies.userID;
   let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[userID][req.params.shortURL], user: users[userID] };
