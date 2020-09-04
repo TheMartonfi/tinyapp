@@ -54,8 +54,8 @@ const doesUserOwnURL = (userID, shortURL, urlDatabase) => {
   }
 };
 
-const isAccessAllowed = (userID, shortURL, urlDatabase, res) => {
-  if (isUserLoggedIn(userID, res) && doesUserOwnURL(userID, shortURL, urlDatabase)) {
+const isAccessAllowed = (userID, shortURL, urlDatabase) => {
+  if (isUserLoggedIn(userID) && doesUserOwnURL(userID, shortURL, urlDatabase)) {
     return true;
   } else {
     return false;
@@ -64,7 +64,7 @@ const isAccessAllowed = (userID, shortURL, urlDatabase, res) => {
 
 const isShortURLValid = (userID, shortURL, urlDatabase, res, cb) => {
   if (findLongURLByShortURL(shortURL, urlDatabase)) {
-    if (isAccessAllowed(userID, shortURL, urlDatabase, res)) {
+    if (isAccessAllowed(userID, shortURL, urlDatabase)) {
       cb();
     } else {
       sendErrorMessage('403', 'Access denied', res);

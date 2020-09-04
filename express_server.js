@@ -71,7 +71,7 @@ app.get("/urls/:shortURL", (req, res) => {
 app.get("/u/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   const longURL = findLongURLByShortURL(shortURL, urlDatabase);
-  const visitorID = req.session.visitorID;
+  let visitorID = req.session.visitorID;
   const currentShortURLVisits = shortURLVisits[shortURL];
   const date = String(new Date());
 
