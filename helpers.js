@@ -74,4 +74,4 @@ const isShortURLValid = (userID, shortURL, urlDatabase, res, cb) => {
   }
 };
 
-module.exports = { generateRandomString, validateURL, findUserByEmail, findLongURLByShortURL, sendErrorMessage, isUserLoggedIn, doesUserOwnURL, isAccessAllowed, isShortURLValid };
+module.exports = { generateRandomString, validateURL, findUserByEmail, findLongURLByShortURL, sendErrorMessage, isUserLoggedIn, doesUserOwnURL, isShortURLValid };

@@ -76,7 +76,6 @@ app.get("/u/:shortURL", (req, res) => {
   const date = String(new Date());
 
   if (longURL) {
-
     if (!visitorID) {
       req.session.visitorID = generateRandomString();
       visitorID = req.session.visitorID;
