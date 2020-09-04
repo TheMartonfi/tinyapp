@@ -164,6 +164,7 @@ app.delete("/urls/:shortURL/delete", (req, res) => {
   
   isShortURLValid(userID, shortURL, urlDatabase, res, () => {
     delete urlDatabase[userID][shortURL];
+    delete shortURLVisits[shortURL];
     res.redirect('/urls');
   });
 });
