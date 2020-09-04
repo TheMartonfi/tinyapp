@@ -1,7 +1,3 @@
-// (Stretch) the date the short URL was created
-// (Stretch) the number of times the short URL was visited
-// (Stretch) the number of unique visits for the short URL
-
 const express = require('express');
 const bodyParser = require('body-parser');
 const cookieSession = require('cookie-session');
@@ -27,6 +23,7 @@ app.listen(PORT, () => {
 
 let urlDatabase = {};
 let users = {};
+let shortURLVisits = {};
 
 app.get("/urls", (req, res) => {
   const userID = req.session.userID;
@@ -66,7 +63,7 @@ app.get("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
 
   isShortURLValid(userID, shortURL, urlDatabase, res, () => {
-    let templateVars = { shortURL, longURL: urlDatabase[userID][shortURL], user: users[userID] };
+    let templateVars = { shortURL, longURL: urlDatabase[userID][shortURL], user: users[userID], shortURLVisits };
     res.render('urls_show', templateVars);
   });
 });
@@ -74,8 +71,22 @@ app.get("/urls/:shortURL", (req, res) => {
 app.get("/u/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   const longURL = findLongURLByShortURL(shortURL, urlDatabase);
+  const visitorID = req.session.visitorID;
+  const currentShortURLVisits = shortURLVisits[shortURL];
+  const date = String(new Date());
 
   if (longURL) {
+
+    if (!visitorID) {
+      req.session.visitorID = generateRandomString();
+      visitorID = req.session.visitorID;
+    }
+
+    if (!currentShortURLVisits.uniqueVisits.includes(visitorID)) {
+      currentShortURLVisits.uniqueVisits.push(visitorID);
+    }
+
+    currentShortURLVisits.visitTimeAndID.push({ date, visitorID });
     res.redirect(longURL);
   } else {
     sendErrorMessage('404', 'Page not found', res);
@@ -129,6 +140,7 @@ app.post("/urls", (req, res) => {
   
   if (isUserLoggedIn(userID)) {
     urlDatabase[userID][shortURL] = validateURL(longURL);
+    shortURLVisits[shortURL] = { uniqueVisits: [], visitTimeAndID: [] };
     res.redirect(`/urls/${shortURL}`);
   } else {
     sendErrorMessage('403', 'Access denied', res);

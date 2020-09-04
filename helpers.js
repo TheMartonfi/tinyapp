@@ -54,18 +54,21 @@ const doesUserOwnURL = (userID, shortURL, urlDatabase) => {
   }
 };
 
-const isAccessAllowed = (userID, shortURL, urlDatabase, res, cb) => {
+const isAccessAllowed = (userID, shortURL, urlDatabase, res) => {
   if (isUserLoggedIn(userID, res) && doesUserOwnURL(userID, shortURL, urlDatabase)) {
-    cb();
+    return true;
   } else {
-    sendErrorMessage('403', 'Access denied', res);
+    return false;
   }
 };
+
 const isShortURLValid = (userID, shortURL, urlDatabase, res, cb) => {
   if (findLongURLByShortURL(shortURL, urlDatabase)) {
-    isAccessAllowed(userID, shortURL, urlDatabase, res, () => {
+    if (isAccessAllowed(userID, shortURL, urlDatabase, res)) {
       cb();
-    });
+    } else {
+      sendErrorMessage('403', 'Access denied', res);
+    }
   } else {
     sendErrorMessage('404', 'Page not found', res);
   }
