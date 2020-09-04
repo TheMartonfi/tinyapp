@@ -25,13 +25,22 @@ let urlDatabase = {};
 let users = {};
 let shortURLVisits = {};
 
+app.get("/", (req, res) => {
+  const userID = req.session.userID;
+
+  if (isUserLoggedIn(userID)) {
+    res.redirect('/urls');
+  } else {
+    res.redirect('/login');
+  }
+});
+
 app.get("/urls", (req, res) => {
   const userID = req.session.userID;
   let templateVars = { urls: urlDatabase[userID], user: users[userID] };
 
   res.render('urls_index', templateVars);
 });
-
 
 app.get("/urls/new", (req, res) => {
   const userID = req.session.userID;
